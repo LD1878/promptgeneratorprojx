@@ -11,11 +11,11 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
-# Collections - CRITICAL SECTION
+# Collections
 collections:
   prompts:
     output: true
-    permalink: /prompts/:path/
+    permalink: /:collection/:title/   # This creates URLs like /prompts/title/
 
 # Default front matter
 defaults:
@@ -24,8 +24,4 @@ defaults:
       type: prompts
     values:
       layout: prompt
-      permalink: /:categories/:title/
-
-# Include these files in build
-include:
-  - .github
+      # No permalink here – we let the collection setting handle it
