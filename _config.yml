@@ -11,11 +11,11 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
-# Collections - THIS IS THE CRITICAL PART
+# Collections - CRITICAL SECTION
 collections:
   prompts:
     output: true
-    permalink: /:collection/:path/
+    permalink: /prompts/:path/
 
 # Default front matter
 defaults:
@@ -24,9 +24,8 @@ defaults:
       type: prompts
     values:
       layout: prompt
-      permalink: /:categories/:title/  # Alternative URL structure
+      permalink: /:categories/:title/
 
 # Include these files in build
 include:
-  - sitemap.xml
-  - robots.txt
+  - .github
