@@ -3,17 +3,22 @@ layout: default
 title: Home
 ---
 
-<div class="home">
-  <h1 class="page-heading">Latest Prompts</h1>
+<div class="home matrix-bg">
+  <h1 class="page-heading glitch" data-text=">_ DAILY LLM PROMPTS">>_ DAILY LLM PROMPTS</h1>
 
-  <!-- Category filter buttons -->
+  <!-- Category filter buttons with cyberpunk style -->
   <div class="category-filter">
-    <button class="filter-btn active" data-category="all">All</button>
-    <button class="filter-btn" data-category="marketing">Marketing</button>
-    <button class="filter-btn" data-category="personal">Personal</button>
-    <button class="filter-btn" data-category="sales">Sales</button>
-    <button class="filter-btn" data-category="research">Research</button>
-    <button class="filter-btn" data-category="ideas">Ideas</button>
+    <button class="filter-btn active" data-category="all">[ALL]</button>
+    <button class="filter-btn" data-category="marketing">[MARKETING]</button>
+    <button class="filter-btn" data-category="legal">[LEGAL]</button>
+    <button class="filter-btn" data-category="medical">[MEDICAL]</button>
+    <button class="filter-btn" data-category="engineering">[ENGINEERING]</button>
+    <button class="filter-btn" data-category="creative">[CREATIVE]</button>
+    <button class="filter-btn" data-category="business">[BUSINESS]</button>
+    <button class="filter-btn" data-category="education">[EDUCATION]</button>
+    <button class="filter-btn" data-category="personal">[PERSONAL]</button>
+    <button class="filter-btn" data-category="research">[RESEARCH]</button>
+    <button class="filter-btn" data-category="multiperspective">[MULTI‑PERSPECTIVE]</button>
   </div>
 
   <!-- Prompt cards container -->
@@ -33,7 +38,7 @@ title: Home
   </div>
 </div>
 
-<!-- JavaScript for filtering -->
+<!-- JavaScript for filtering (unchanged) -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const filterButtons = document.querySelectorAll('.filter-btn');
@@ -41,9 +46,7 @@ title: Home
 
     filterButtons.forEach(btn => {
       btn.addEventListener('click', function() {
-        // Remove active class from all buttons
         filterButtons.forEach(b => b.classList.remove('active'));
-        // Add active class to clicked button
         this.classList.add('active');
 
         const category = this.dataset.category;
