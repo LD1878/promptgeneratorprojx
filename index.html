@@ -73,6 +73,21 @@ title: Home
   </div>
 </div>
 
+<!-- Matrix Audio Player -->
+<div class="audio-player">
+  <div class="audio-visualizer">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <button id="audio-toggle" class="audio-btn">>_ PLAY</button>
+  <input type="range" id="audio-volume" min="0" max="1" step="0.1" value="0.3" class="audio-volume">
+  <span id="audio-status" class="audio-status">▶</span>
+</div>
+
+<audio id="background-audio" loop preload="metadata">
+  <source src="{{ '/assets/audio/ambient.mp3' | relative_url }}" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
 <!-- JavaScript -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -180,6 +195,81 @@ title: Home
         activeSearchSpan.textContent = '';
         applyFilters();
       }
+    });
+
+    // --- AUDIO PLAYER FUNCTIONALITY ---
+    const audio = document.getElementById('background-audio');
+    const toggleBtn = document.getElementById('audio-toggle');
+    const volumeSlider = document.getElementById('audio-volume');
+    const statusIcon = document.getElementById('audio-status');
+    const visualizerBars = document.querySelectorAll('.audio-visualizer span');
+    
+    let isPlaying = false;
+    let visualizerInterval;
+    
+    // Visualizer animation
+    function startVisualizer() {
+      if (visualizerInterval) clearInterval(visualizerInterval);
+      visualizerInterval = setInterval(() => {
+        visualizerBars.forEach(bar => {
+          const height = Math.random() * 20 + 5;
+          bar.style.height = height + 'px';
+          bar.style.opacity = 0.5 + Math.random() * 0.5;
+        });
+      }, 100);
+    }
+    
+    function stopVisualizer() {
+      if (visualizerInterval) {
+        clearInterval(visualizerInterval);
+        visualizerInterval = null;
+        visualizerBars.forEach(bar => {
+          bar.style.height = '5px';
+          bar.style.opacity = 0.3;
+        });
+      }
+    }
+    
+    toggleBtn.addEventListener('click', () => {
+      if (isPlaying) {
+        audio.pause();
+        toggleBtn.textContent = '>_ PLAY';
+        statusIcon.textContent = '▶';
+        statusIcon.style.animation = 'none';
+        stopVisualizer();
+      } else {
+        audio.volume = volumeSlider.value;
+        audio.play().then(() => {
+          toggleBtn.textContent = '⏸ PAUSE';
+          statusIcon.textContent = '⏸';
+          statusIcon.style.animation = 'pulse 2s infinite';
+          startVisualizer();
+        }).catch(error => {
+          console.log('Playback failed:', error);
+          toggleBtn.textContent = '>_ CLICK TO PLAY';
+          alert('Click anywhere on the page first (browser autoplay restrictions)');
+        });
+      }
+      isPlaying = !isPlaying;
+    });
+    
+    volumeSlider.addEventListener('input', (e) => {
+      audio.volume = e.target.value;
+    });
+    
+    // Handle autoplay restrictions
+    document.body.addEventListener('click', function initAudio() {
+      if (!isPlaying && !localStorage.getItem('audio-init')) {
+        localStorage.setItem('audio-init', 'true');
+      }
+    }, { once: true });
+    
+    // Stop visualizer when audio ends
+    audio.addEventListener('ended', () => {
+      isPlaying = false;
+      toggleBtn.textContent = '>_ PLAY';
+      statusIcon.textContent = '▶';
+      stopVisualizer();
     });
   });
 </script>
