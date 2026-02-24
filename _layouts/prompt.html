@@ -1,0 +1,25 @@
+---
+layout: default
+---
+<article class="prompt">
+  <header class="prompt-header">
+    <h1 class="prompt-title">{{ page.title }}</h1>
+    <p class="prompt-meta">
+      <span class="prompt-date">{{ page.date | date: "%b %-d, %Y" }}</span>
+      <span class="prompt-category">Category: {{ page.categories | first | capitalize }}</span>
+    </p>
+  </header>
+
+  <div class="prompt-content">
+    {{ content }}
+  </div>
+
+  <div class="prompt-tags">
+    {% if page.tags %}
+      <strong>Tags:</strong>
+      {% for tag in page.tags %}
+        <span class="tag">{{ tag }}</span>
+      {% endfor %}
+    {% endif %}
+  </div>
+</article>
