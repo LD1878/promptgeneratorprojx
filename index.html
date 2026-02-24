@@ -6,7 +6,7 @@ title: Home
 <div class="home matrix-bg">
   <h1 class="page-heading glitch" data-text=">_ DAILY LLM PROMPTS">>_ DAILY LLM PROMPTS</h1>
 
-  <!-- Category filter buttons with cyberpunk style -->
+  <!-- Category filter buttons -->
   <div class="category-filter">
     <button class="filter-btn active" data-category="all">[ALL]</button>
     <button class="filter-btn" data-category="marketing">[MARKETING]</button>
@@ -21,16 +21,41 @@ title: Home
     <button class="filter-btn" data-category="multiperspective">[MULTI‑PERSPECTIVE]</button>
   </div>
 
+  <!-- Search bar (appears below category filter) -->
+  <div class="search-container">
+    <input type="text" id="search-input" placeholder=">_ SEARCH PROMPTS IN CURRENT CATEGORY..." class="search-input">
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <!-- Active filters display -->
+  <div class="active-filters">
+    <span class="active-category" id="active-category">CATEGORY: ALL</span>
+    <span class="active-search" id="active-search"></span>
+    <span class="result-count" id="result-count">SHOWING <span id="count-number">0</span> PROMPTS</span>
+  </div>
+
   <!-- Prompt cards container -->
   <div class="prompt-grid" id="prompt-grid">
     {% for prompt in site.prompts reversed %}
-      <div class="prompt-card" data-category="{{ prompt.categories | first | downcase }}">
-        <h2>
-          <a class="post-link" href="{{ prompt.url | relative_url }}">{{ prompt.title }}</a>
-        </h2>
+      {% assign prompt_id = prompt.title | slugify | append: '-' | append: forloop.index %}
+      <div class="prompt-card" 
+           data-category="{{ prompt.categories | first | downcase }}"
+           data-title="{{ prompt.title | downcase }}"
+           content="{{ prompt.content | strip_html | downcase }}"
+           data-id="{{ prompt_id }}">
+        <div class="prompt-card-header">
+          <h2 class="prompt-title-clickable">{{ prompt.title }}</h2>
+          <span class="expand-icon">[+]</span>
+        </div>
         <span class="post-meta">{{ prompt.date | date: "%b %-d, %Y" }}</span>
         <div class="prompt-excerpt">
           {{ prompt.content | strip_html | truncatewords: 30 }}
+        </div>
+        <div class="prompt-full-content" style="display: none;">
+          <hr class="content-divider">
+          <div class="full-prompt-text">
+            {{ prompt.content | markdownify }}
+          </div>
         </div>
         <div class="prompt-category">{{ prompt.categories | first | capitalize }}</div>
       </div>
@@ -38,27 +63,142 @@ title: Home
   </div>
 </div>
 
-<!-- JavaScript for filtering (unchanged) -->
+<!-- JavaScript for filtering, search, and expand/collapse -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Get elements
     const filterButtons = document.querySelectorAll('.filter-btn');
     const promptCards = document.querySelectorAll('.prompt-card');
-
+    const searchInput = document.getElementById('search-input');
+    const activeCategorySpan = document.getElementById('active-category');
+    const activeSearchSpan = document.getElementById('active-search');
+    const resultCountSpan = document.getElementById('count-number');
+    const resultCountContainer = document.getElementById('result-count');
+    
+    // State
+    let currentCategory = 'all';
+    let currentSearchTerm = '';
+    
+    // Initialize result count
+    updateResultCount();
+    
+    // --- CATEGORY FILTER FUNCTIONALITY ---
     filterButtons.forEach(btn => {
       btn.addEventListener('click', function() {
+        // Update active button
         filterButtons.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-
-        const category = this.dataset.category;
-
-        promptCards.forEach(card => {
-          if (category === 'all' || card.dataset.category === category) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
-        });
+        
+        // Update current category
+        currentCategory = this.dataset.category;
+        
+        // Update active category display
+        activeCategorySpan.textContent = `CATEGORY: ${currentCategory.toUpperCase()}`;
+        
+        // Apply both filters
+        applyFilters();
+        
+        // Clear search input when changing categories (optional - remove if you don't want this)
+        // searchInput.value = '';
+        // currentSearchTerm = '';
+        // activeSearchSpan.textContent = '';
       });
+    });
+    
+    // --- SEARCH FUNCTIONALITY ---
+    searchInput.addEventListener('input', function() {
+      currentSearchTerm = this.value.toLowerCase().trim();
+      
+      // Update active search display
+      if (currentSearchTerm) {
+        activeSearchSpan.textContent = `SEARCH: "${currentSearchTerm}"`;
+      } else {
+        activeSearchSpan.textContent = '';
+      }
+      
+      // Apply filters
+      applyFilters();
+    });
+    
+    // --- FILTER APPLICATION (combines category + search) ---
+    function applyFilters() {
+      let visibleCount = 0;
+      
+      promptCards.forEach(card => {
+        // Check category filter
+        const cardCategory = card.dataset.category;
+        const categoryMatch = currentCategory === 'all' || cardCategory === currentCategory;
+        
+        // Check search filter (if search term exists)
+        let searchMatch = true;
+        if (currentSearchTerm) {
+          const title = card.dataset.title || '';
+          const content = card.getAttribute('content') || '';
+          searchMatch = title.includes(currentSearchTerm) || content.includes(currentSearchTerm);
+        }
+        
+        // Show/hide based on both filters
+        if (categoryMatch && searchMatch) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      // Update result count
+      resultCountSpan.textContent = visibleCount;
+      
+      // Show "no results" message if needed
+      const noResultsMsg = document.querySelector('.no-results-message');
+      if (visibleCount === 0) {
+        if (!noResultsMsg) {
+          const msg = document.createElement('div');
+          msg.className = 'no-results-message';
+          msg.innerHTML = '>_ NO PROMPTS FOUND. TRY A DIFFERENT SEARCH OR CATEGORY.';
+          document.querySelector('.prompt-grid').after(msg);
+        }
+      } else {
+        if (noResultsMsg) {
+          noResultsMsg.remove();
+        }
+      }
+    }
+    
+    // --- UPDATE RESULT COUNT (initial) ---
+    function updateResultCount() {
+      const total = promptCards.length;
+      resultCountSpan.textContent = total;
+    }
+    
+    // --- EXPAND/COLLAPSE FUNCTIONALITY ---
+    promptCards.forEach(card => {
+      const header = card.querySelector('.prompt-card-header');
+      const expandIcon = card.querySelector('.expand-icon');
+      const fullContent = card.querySelector('.prompt-full-content');
+      
+      header.addEventListener('click', function() {
+        const isExpanded = fullContent.style.display === 'block';
+        
+        // Toggle full content
+        fullContent.style.display = isExpanded ? 'none' : 'block';
+        
+        // Toggle icon
+        expandIcon.textContent = isExpanded ? '[+]' : '[-]';
+        
+        // Add/remove expanded class for styling
+        card.classList.toggle('expanded', !isExpanded);
+      });
+    });
+    
+    // --- KEYBOARD SHORTCUT: ESC to clear search ---
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        this.value = '';
+        currentSearchTerm = '';
+        activeSearchSpan.textContent = '';
+        applyFilters();
+      }
     });
   });
 </script>
