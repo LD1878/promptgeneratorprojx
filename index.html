@@ -44,11 +44,11 @@ title: Home
            data-content="{{ prompt.content | strip_html | downcase | escape }}"
            data-id="{{ prompt_id }}">
         <div class="prompt-card-header">
-          <!-- Title is now a link to the full page -->
+          <!-- Title link to full page -->
           <h2>
             <a href="{{ prompt.url | relative_url }}" class="prompt-title-link">{{ prompt.title }}</a>
           </h2>
-          <!-- Expand/collapse button (separate from title) -->
+          <!-- Expand/collapse button -->
           <button class="expand-btn" aria-label="Expand prompt">
             <span class="expand-icon">[+]</span>
           </button>
@@ -62,7 +62,6 @@ title: Home
           <div class="full-prompt-text">
             {{ prompt.content | markdownify }}
           </div>
-          <!-- Add a link to full page at bottom of expanded view -->
           <div class="full-page-link">
             <a href="{{ prompt.url | relative_url }}" class="view-full-link">[VIEW FULL PAGE →]</a>
           </div>
@@ -73,25 +72,24 @@ title: Home
   </div>
 </div>
 
-<!-- Matrix Audio Player -->
+<!-- Matrix Audio Player (Autoplay, Muted Initially) -->
 <div class="audio-player">
   <div class="audio-visualizer">
     <span></span><span></span><span></span><span></span><span></span>
   </div>
-  <button id="audio-toggle" class="audio-btn">>_ PLAY</button>
+  <button id="audio-toggle" class="audio-btn">🔊 UNMUTE</button>
   <input type="range" id="audio-volume" min="0" max="1" step="0.1" value="0.3" class="audio-volume">
-  <span id="audio-status" class="audio-status">▶</span>
+  <span id="audio-status" class="audio-status">🔇</span>
 </div>
 
-<audio id="background-audio" loop preload="metadata">
+<audio id="background-audio" loop autoplay muted preload="auto">
   <source src="{{ '/assets/audio/ambient.mp3' | relative_url }}" type="audio/mpeg">
-  Your browser does not support the audio element.
 </audio>
 
 <!-- JavaScript -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Get elements
+    // --- UI Elements ---
     const filterButtons = document.querySelectorAll('.filter-btn');
     const promptCards = document.querySelectorAll('.prompt-card');
     const searchInput = document.getElementById('search-input');
@@ -99,48 +97,40 @@ title: Home
     const activeSearchSpan = document.getElementById('active-search');
     const resultCountSpan = document.getElementById('count-number');
     
-    // State
     let currentCategory = 'all';
     let currentSearchTerm = '';
     
-    // Initialize result count
     updateResultCount();
     
-    // --- CATEGORY FILTER ---
+    // Category filter
     filterButtons.forEach(btn => {
       btn.addEventListener('click', function() {
         filterButtons.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        
         currentCategory = this.dataset.category;
         activeCategorySpan.textContent = `CATEGORY: ${currentCategory.toUpperCase()}`;
-        
         applyFilters();
       });
     });
     
-    // --- SEARCH ---
+    // Search
     searchInput.addEventListener('input', function() {
       currentSearchTerm = this.value.toLowerCase().trim();
       activeSearchSpan.textContent = currentSearchTerm ? `SEARCH: "${currentSearchTerm}"` : '';
       applyFilters();
     });
     
-    // --- FILTER APPLICATION ---
     function applyFilters() {
       let visibleCount = 0;
-      
       promptCards.forEach(card => {
         const cardCategory = card.dataset.category;
         const categoryMatch = currentCategory === 'all' || cardCategory === currentCategory;
-        
         let searchMatch = true;
         if (currentSearchTerm) {
           const title = card.dataset.title || '';
           const content = card.dataset.content || '';
           searchMatch = title.includes(currentSearchTerm) || content.includes(currentSearchTerm);
         }
-        
         if (categoryMatch && searchMatch) {
           card.style.display = 'block';
           visibleCount++;
@@ -148,10 +138,8 @@ title: Home
           card.style.display = 'none';
         }
       });
-      
       resultCountSpan.textContent = visibleCount;
       
-      // No results message
       const noResultsMsg = document.querySelector('.no-results-message');
       if (visibleCount === 0) {
         if (!noResultsMsg) {
@@ -169,25 +157,23 @@ title: Home
       resultCountSpan.textContent = promptCards.length;
     }
     
-    // --- EXPAND/COLLAPSE (NOW ON BUTTON ONLY) ---
+    // Expand/collapse
     promptCards.forEach(card => {
       const expandBtn = card.querySelector('.expand-btn');
       const expandIcon = card.querySelector('.expand-icon');
       const fullContent = card.querySelector('.prompt-full-content');
       
       expandBtn.addEventListener('click', function(e) {
-        e.preventDefault();  // Prevent any default button behavior
-        e.stopPropagation(); // Stop event from bubbling
-        
+        e.preventDefault();
+        e.stopPropagation();
         const isExpanded = fullContent.style.display === 'block';
-        
         fullContent.style.display = isExpanded ? 'none' : 'block';
         expandIcon.textContent = isExpanded ? '[+]' : '[-]';
         card.classList.toggle('expanded', !isExpanded);
       });
     });
     
-    // --- KEYBOARD SHORTCUT ---
+    // Keyboard shortcut
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         this.value = '';
@@ -197,17 +183,18 @@ title: Home
       }
     });
 
-    // --- AUDIO PLAYER FUNCTIONALITY ---
+    // --- AUDIO PLAYER (Autoplay muted, unmute on button click) ---
     const audio = document.getElementById('background-audio');
     const toggleBtn = document.getElementById('audio-toggle');
     const volumeSlider = document.getElementById('audio-volume');
     const statusIcon = document.getElementById('audio-status');
     const visualizerBars = document.querySelectorAll('.audio-visualizer span');
     
-    let isPlaying = false;
+    let isMuted = true;      // starts muted
+    let isPlaying = true;    // autoplay is playing (muted)
     let visualizerInterval;
     
-    // Visualizer animation
+    // Start visualizer immediately (since audio is playing muted)
     function startVisualizer() {
       if (visualizerInterval) clearInterval(visualizerInterval);
       visualizerInterval = setInterval(() => {
@@ -218,6 +205,7 @@ title: Home
         });
       }, 100);
     }
+    startVisualizer();
     
     function stopVisualizer() {
       if (visualizerInterval) {
@@ -230,46 +218,61 @@ title: Home
       }
     }
     
-    toggleBtn.addEventListener('click', () => {
-      if (isPlaying) {
-        audio.pause();
-        toggleBtn.textContent = '>_ PLAY';
-        statusIcon.textContent = '▶';
+    // Update UI based on mute state
+    function updateUIForMute() {
+      if (isMuted) {
+        toggleBtn.textContent = '🔊 UNMUTE';
+        statusIcon.textContent = '🔇';
         statusIcon.style.animation = 'none';
-        stopVisualizer();
       } else {
-        audio.volume = volumeSlider.value;
-        audio.play().then(() => {
-          toggleBtn.textContent = '⏸ PAUSE';
-          statusIcon.textContent = '⏸';
-          statusIcon.style.animation = 'pulse 2s infinite';
-          startVisualizer();
-        }).catch(error => {
-          console.log('Playback failed:', error);
-          toggleBtn.textContent = '>_ CLICK TO PLAY';
-          alert('Click anywhere on the page first (browser autoplay restrictions)');
-        });
+        toggleBtn.textContent = '🔇 MUTE';
+        statusIcon.textContent = '🔊';
+        statusIcon.style.animation = 'pulse 2s infinite';
       }
-      isPlaying = !isPlaying;
+    }
+    
+    // Initial UI
+    updateUIForMute();
+    
+    // Toggle mute/unmute
+    toggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      
+      if (isMuted) {
+        // Unmute
+        audio.muted = false;
+        audio.volume = volumeSlider.value;
+        isMuted = false;
+      } else {
+        // Mute
+        audio.muted = true;
+        isMuted = true;
+      }
+      updateUIForMute();
     });
     
+    // Volume slider (only affects when unmuted)
     volumeSlider.addEventListener('input', (e) => {
       audio.volume = e.target.value;
+      // If currently muted and user adjusts volume, we could optionally unmute? Probably not.
     });
     
-    // Handle autoplay restrictions
-    document.body.addEventListener('click', function initAudio() {
-      if (!isPlaying && !localStorage.getItem('audio-init')) {
-        localStorage.setItem('audio-init', 'true');
-      }
-    }, { once: true });
-    
-    // Stop visualizer when audio ends
+    // If audio ends, stop visualizer
     audio.addEventListener('ended', () => {
-      isPlaying = false;
-      toggleBtn.textContent = '>_ PLAY';
-      statusIcon.textContent = '▶';
       stopVisualizer();
+      isPlaying = false;
+    });
+    
+    // If audio pauses (shouldn't happen with autoplay loop, but just in case)
+    audio.addEventListener('pause', () => {
+      if (!audio.muted) {
+        // Only stop visualizer if we're not playing
+        stopVisualizer();
+      }
+    });
+    
+    audio.addEventListener('play', () => {
+      startVisualizer();
     });
   });
 </script>
