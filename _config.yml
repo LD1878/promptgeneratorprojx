@@ -11,17 +11,17 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
-# Collections - FIXED PERMALINK
+# Collections – ONLY PERMALINK HERE
 collections:
   prompts:
     output: true
     permalink: /:categories/:title/   # This creates URLs like /creative/title/
 
-# Default front matter
+# Default front matter – NO PERMALINK HERE
 defaults:
   - scope:
       path: ""
       type: prompts
     values:
       layout: prompt
-      # No permalink here – the collection setting handles it
+      # Do NOT add a permalink line here!
