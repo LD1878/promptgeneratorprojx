@@ -3,29 +3,69 @@ layout: default
 title: Home
 ---
 
-<div class="home">
-  <h1 class="page-heading">Latest Prompts</h1>
+<div class="home matrix-bg">
+  <h1 class="page-heading glitch" data-text=">_ DAILY LLM PROMPTS">>_ DAILY LLM PROMPTS</h1>
 
   <!-- Category filter buttons -->
   <div class="category-filter">
-    <button class="filter-btn active" data-category="all">All</button>
-    <button class="filter-btn" data-category="marketing">Marketing</button>
-    <button class="filter-btn" data-category="personal">Personal</button>
-    <button class="filter-btn" data-category="sales">Sales</button>
-    <button class="filter-btn" data-category="research">Research</button>
-    <button class="filter-btn" data-category="ideas">Ideas</button>
+    <button class="filter-btn active" data-category="all">[ALL]</button>
+    <button class="filter-btn" data-category="marketing">[MARKETING]</button>
+    <button class="filter-btn" data-category="legal">[LEGAL]</button>
+    <button class="filter-btn" data-category="medical">[MEDICAL]</button>
+    <button class="filter-btn" data-category="engineering">[ENGINEERING]</button>
+    <button class="filter-btn" data-category="creative">[CREATIVE]</button>
+    <button class="filter-btn" data-category="business">[BUSINESS]</button>
+    <button class="filter-btn" data-category="education">[EDUCATION]</button>
+    <button class="filter-btn" data-category="personal">[PERSONAL]</button>
+    <button class="filter-btn" data-category="research">[RESEARCH]</button>
+    <button class="filter-btn" data-category="multiperspective">[MULTI‑PERSPECTIVE]</button>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-container">
+    <input type="text" id="search-input" placeholder=">_ SEARCH PROMPTS IN CURRENT CATEGORY..." class="search-input">
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <!-- Active filters display -->
+  <div class="active-filters">
+    <span class="active-category" id="active-category">CATEGORY: ALL</span>
+    <span class="active-search" id="active-search"></span>
+    <span class="result-count" id="result-count">SHOWING <span id="count-number">0</span> PROMPTS</span>
   </div>
 
   <!-- Prompt cards container -->
   <div class="prompt-grid" id="prompt-grid">
     {% for prompt in site.prompts reversed %}
-      <div class="prompt-card" data-category="{{ prompt.categories | first | downcase }}">
-        <h2>
-          <a class="post-link" href="{{ prompt.url | relative_url }}">{{ prompt.title }}</a>
-        </h2>
+      {% assign prompt_id = prompt.title | slugify | append: '-' | append: forloop.index %}
+      <div class="prompt-card" 
+           data-category="{{ prompt.categories | first | downcase }}"
+           data-title="{{ prompt.title | downcase }}"
+           data-content="{{ prompt.content | strip_html | downcase | escape }}"
+           data-id="{{ prompt_id }}">
+        <div class="prompt-card-header">
+          <!-- Title is now a link to the full page -->
+          <h2>
+            <a href="{{ prompt.url | relative_url }}" class="prompt-title-link">{{ prompt.title }}</a>
+          </h2>
+          <!-- Expand/collapse button (separate from title) -->
+          <button class="expand-btn" aria-label="Expand prompt">
+            <span class="expand-icon">[+]</span>
+          </button>
+        </div>
         <span class="post-meta">{{ prompt.date | date: "%b %-d, %Y" }}</span>
         <div class="prompt-excerpt">
           {{ prompt.content | strip_html | truncatewords: 30 }}
+        </div>
+        <div class="prompt-full-content" style="display: none;">
+          <hr class="content-divider">
+          <div class="full-prompt-text">
+            {{ prompt.content | markdownify }}
+          </div>
+          <!-- Add a link to full page at bottom of expanded view -->
+          <div class="full-page-link">
+            <a href="{{ prompt.url | relative_url }}" class="view-full-link">[VIEW FULL PAGE →]</a>
+          </div>
         </div>
         <div class="prompt-category">{{ prompt.categories | first | capitalize }}</div>
       </div>
@@ -33,29 +73,113 @@ title: Home
   </div>
 </div>
 
-<!-- JavaScript for filtering -->
+<!-- JavaScript -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Get elements
     const filterButtons = document.querySelectorAll('.filter-btn');
     const promptCards = document.querySelectorAll('.prompt-card');
-
+    const searchInput = document.getElementById('search-input');
+    const activeCategorySpan = document.getElementById('active-category');
+    const activeSearchSpan = document.getElementById('active-search');
+    const resultCountSpan = document.getElementById('count-number');
+    
+    // State
+    let currentCategory = 'all';
+    let currentSearchTerm = '';
+    
+    // Initialize result count
+    updateResultCount();
+    
+    // --- CATEGORY FILTER ---
     filterButtons.forEach(btn => {
       btn.addEventListener('click', function() {
-        // Remove active class from all buttons
         filterButtons.forEach(b => b.classList.remove('active'));
-        // Add active class to clicked button
         this.classList.add('active');
-
-        const category = this.dataset.category;
-
-        promptCards.forEach(card => {
-          if (category === 'all' || card.dataset.category === category) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
-        });
+        
+        currentCategory = this.dataset.category;
+        activeCategorySpan.textContent = `CATEGORY: ${currentCategory.toUpperCase()}`;
+        
+        applyFilters();
       });
+    });
+    
+    // --- SEARCH ---
+    searchInput.addEventListener('input', function() {
+      currentSearchTerm = this.value.toLowerCase().trim();
+      activeSearchSpan.textContent = currentSearchTerm ? `SEARCH: "${currentSearchTerm}"` : '';
+      applyFilters();
+    });
+    
+    // --- FILTER APPLICATION ---
+    function applyFilters() {
+      let visibleCount = 0;
+      
+      promptCards.forEach(card => {
+        const cardCategory = card.dataset.category;
+        const categoryMatch = currentCategory === 'all' || cardCategory === currentCategory;
+        
+        let searchMatch = true;
+        if (currentSearchTerm) {
+          const title = card.dataset.title || '';
+          const content = card.dataset.content || '';
+          searchMatch = title.includes(currentSearchTerm) || content.includes(currentSearchTerm);
+        }
+        
+        if (categoryMatch && searchMatch) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      
+      resultCountSpan.textContent = visibleCount;
+      
+      // No results message
+      const noResultsMsg = document.querySelector('.no-results-message');
+      if (visibleCount === 0) {
+        if (!noResultsMsg) {
+          const msg = document.createElement('div');
+          msg.className = 'no-results-message';
+          msg.innerHTML = '>_ NO PROMPTS FOUND. TRY A DIFFERENT SEARCH OR CATEGORY.';
+          document.querySelector('.prompt-grid').after(msg);
+        }
+      } else {
+        if (noResultsMsg) noResultsMsg.remove();
+      }
+    }
+    
+    function updateResultCount() {
+      resultCountSpan.textContent = promptCards.length;
+    }
+    
+    // --- EXPAND/COLLAPSE (NOW ON BUTTON ONLY) ---
+    promptCards.forEach(card => {
+      const expandBtn = card.querySelector('.expand-btn');
+      const expandIcon = card.querySelector('.expand-icon');
+      const fullContent = card.querySelector('.prompt-full-content');
+      
+      expandBtn.addEventListener('click', function(e) {
+        e.preventDefault();  // Prevent any default button behavior
+        e.stopPropagation(); // Stop event from bubbling
+        
+        const isExpanded = fullContent.style.display === 'block';
+        
+        fullContent.style.display = isExpanded ? 'none' : 'block';
+        expandIcon.textContent = isExpanded ? '[+]' : '[-]';
+        card.classList.toggle('expanded', !isExpanded);
+      });
+    });
+    
+    // --- KEYBOARD SHORTCUT ---
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        this.value = '';
+        currentSearchTerm = '';
+        activeSearchSpan.textContent = '';
+        applyFilters();
+      }
     });
   });
 </script>
