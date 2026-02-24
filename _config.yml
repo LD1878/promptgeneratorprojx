@@ -1,7 +1,7 @@
 # Site settings
 title: "Daily LLM Prompts"
-description: "100 new prompts every day for marketing, personal, sales, research, and ideas."
-baseurl: "/promptgeneratorprojx"   # Important: your repo name
+description: "100 new prompts every day for marketing, legal, medical, engineering, creative, business, education, personal, research, and multi-perspective thinking."
+baseurl: "/promptgeneratorprojx"
 url: "https://LD1878.github.io"
 
 # Build settings
@@ -11,16 +11,22 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
-# Collections
+# Collections - THIS IS THE CRITICAL PART
 collections:
   prompts:
     output: true
     permalink: /:collection/:path/
 
-# Default front matter for prompts
+# Default front matter
 defaults:
   - scope:
       path: ""
       type: prompts
     values:
       layout: prompt
+      permalink: /:categories/:title/  # Alternative URL structure
+
+# Include these files in build
+include:
+  - sitemap.xml
+  - robots.txt
