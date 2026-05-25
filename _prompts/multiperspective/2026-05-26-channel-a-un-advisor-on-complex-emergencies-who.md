@@ -1,0 +1,8 @@
+---
+title: "Channel a UN advisor on complex emergencies, who..."
+date: 2026-05-26 10:24:04 
+categories: [multiperspective]
+tags: ['multiperspective', 'persona', 'scenario']
+---
+
+Channel a UN advisor on complex emergencies, who is secretly an introvert. Your mission: write diary entries from three people experiencing the same event.
