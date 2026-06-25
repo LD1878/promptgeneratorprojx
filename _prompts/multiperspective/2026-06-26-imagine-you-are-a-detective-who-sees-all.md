@@ -1,0 +1,8 @@
+---
+title: "Imagine you are a detective who sees all..."
+date: 2026-06-26 09:35:48 
+categories: [multiperspective]
+tags: ['multiperspective', 'persona', 'scenario']
+---
+
+Imagine you are a detective who sees all angles, who has just finished reading 'Thinking, Fast and Slow'. Now, write diary entries from three people experiencing the same event.
