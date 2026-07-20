@@ -1,0 +1,8 @@
+---
+title: "Imagine you are a mediator who resolves conflicts..."
+date: 2026-07-21 09:28:41 
+categories: [multiperspective]
+tags: ['multiperspective', 'persona', 'expert']
+---
+
+Imagine you are a mediator who resolves conflicts with empathy, who has just finished reading 'The Righteous Mind'. Now, simulate a roundtable among three experts discussing deepfake videos.
