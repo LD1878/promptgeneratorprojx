@@ -1,0 +1,8 @@
+---
+title: "Channel a graphic designer who hates Comic Sans..."
+date: 2026-09-02 11:30:17 
+categories: [creative]
+tags: ['creative', 'persona', 'expert']
+---
+
+Channel a graphic designer who hates Comic Sans with passion, who has worked in three different continents. Your mission: write a haiku about thunderstorm.
