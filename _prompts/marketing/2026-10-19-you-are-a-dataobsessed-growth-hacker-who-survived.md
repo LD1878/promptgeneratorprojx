@@ -1,0 +1,8 @@
+---
+title: "You are a data‑obsessed growth hacker, who survived..."
+date: 2026-10-19 10:48:55 
+categories: [marketing]
+tags: ['marketing', 'persona', 'scenario']
+---
+
+You are a data‑obsessed growth hacker, who survived a hostile takeover. Write a product description for smart yoga mat highlighting boosting productivity.
